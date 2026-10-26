@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Expense Tracker - Kelola Keuangan Pribadi Lebih Terarah</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="container">
+      <a href="/" class="brand">
+        💰 Expense Tracker
+      </a>
+      <div class="nav-links" id="navLinks">
+        <a href="/login" class="btn btn-outline">Masuk</a>
+        <a href="/register" class="btn btn-primary">Daftar</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <header class="hero">
+    <div class="container">
+      <div class="hero-badge">Sistem Manajemen Keuangan Pribadi</div>
+      <h1>Kendalikan Arus Kas Anda dengan <span>Expense Tracker</span></h1>
+      <p>
+        Pantau pemasukan, evaluasi pengeluaran, dan kelola kategori transaksi secara fleksibel dan aman langsung dalam satu dashboard terstruktur.
+      </p>
+      <div class="hero-actions" id="heroActions">
+        <a href="/register" class="btn btn-primary" style="padding: 0.8rem 1.75rem; font-size: 1rem;">Mulai Sekarang — Gratis</a>
+        <a href="/login" class="btn btn-outline" style="padding: 0.8rem 1.75rem; font-size: 1rem;">Masuk ke Akun</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Fitur Utama -->
+  <section class="features">
+    <div class="container">
+      <div class="section-title">
+        <h2>Fitur Utama untuk Kebebasan Finansial Anda</h2>
+        <p>Solusi sederhana dan intuitif untuk mencatat setiap rupiah yang Anda kelola.</p>
+      </div>
+
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">⚡</div>
+          <h3>Pencatatan Cepat & Mudah</h3>
+          <p>Tambahkan catatan transaksi pemasukan atau pengeluaran harian hanya dalam beberapa detik beserta rincian tanggal dan nominal.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">🏷️</div>
+          <h3>Kategori Bawaan & Custom</h3>
+          <p>Gunakan kategori bawaan sistem atau buat kategori khusus Anda sendiri untuk pengelompokan transaksi yang lebih relevan.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">📊</div>
+          <h3>Ringkasan & Visualisasi Grafik</h3>
+          <p>Lihat perbandingan total pemasukan vs pengeluaran secara visual serta ringkasan saldo bersih bulanan Anda secara real-time.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">🔒</div>
+          <h3>Aman & Terisolasi</h3>
+          <p>Data keuangan Anda terlindungi dengan enkripsi kata sandi bcrypt dan autentikasi token JWT berbasis HttpOnly Cookie anti-XSS.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <p>&copy; 2026 Expense Tracker. Hak Cipta Dilindungi.</p>
+    </div>
+  </footer>
+
+  <script src="/static/js/auth.js"></script>
+  <script>
+    // Periksa apakah user sudah login, jika ya perbarui navigasi ke Dashboard
+    checkAuth().then(user => {
+      if (user) {
+        const navLinks = document.getElementById('navLinks');
+        const heroActions = document.getElementById('heroActions');
+        navLinks.innerHTML = `
+          <span style="font-size: 0.9rem; color: var(--text-muted);">Halo, <strong>${user.username}</strong></span>
+          <a href="/dashboard" class="btn btn-primary">Buka Dashboard</a>
+        `;
+        heroActions.innerHTML = `
+          <a href="/dashboard" class="btn btn-primary" style="padding: 0.8rem 1.75rem; font-size: 1rem;">Buka Dashboard Keuangan</a>
+        `;
+      }
+    });
+  </script>
+</body>
+</html>
+

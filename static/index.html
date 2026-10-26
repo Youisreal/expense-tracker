@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Keuangan - Expense Tracker</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <!-- Chart.js via CDN (telah disetujui pengguna) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <!-- Navbar Dashboard -->
+  <nav class="navbar">
+    <div class="container">
+      <a href="/dashboard" class="brand">💰 Expense Tracker</a>
+      <div class="nav-links">
+        <span id="navUser" style="font-size: 0.9rem; color: var(--text-muted); margin-right: 0.5rem;">Memuat...</span>
+        <button onclick="openCategoryModal()" class="btn btn-outline btn-sm">🏷️ Kelola Kategori</button>
+        <button onclick="logoutUser()" class="btn btn-danger-outline btn-sm">Keluar</button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container">
+    <!-- Header Dashboard & Tombol Cepat -->
+    <header class="dashboard-header">
+      <div class="dashboard-title">
+        <h1>Dashboard Keuangan</h1>
+        <p>Pantau dan kelola arus kas harian serta bulanan Anda secara terstruktur.</p>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+        <!-- Filter Periode (Bulan & Tahun) -->
+        <div class="period-filter">
+          <span>📅</span>
+          <select id="filterMonth">
+            <option value="1">Januari</option>
+            <option value="2">Februari</option>
+            <option value="3">Maret</option>
+            <option value="4">April</option>
+            <option value="5">Mei</option>
+            <option value="6">Juni</option>
+            <option value="7">Juli</option>
+            <option value="8">Agustus</option>
+            <option value="9">September</option>
+            <option value="10">Oktober</option>
+            <option value="11">November</option>
+            <option value="12">Desember</option>
+          </select>
+          <select id="filterYear"></select>
+        </div>
+
+        <!-- Tombol Cepat Tambah Transaksi -->
+        <button onclick="openAddTransactionModal()" class="btn btn-primary">
+          ➕ Tambah Transaksi
+        </button>
+      </div>
+    </header>
+
+    <!-- Kartu Statistik (Ringkasan Keuangan) -->
+    <section class="stats-grid">
+      <!-- Total Pemasukan -->
+      <div class="stat-card stat-income">
+        <div class="stat-info">
+          <div class="stat-label">Total Pemasukan</div>
+          <div class="stat-value" id="totalIncome">Rp 0</div>
+        </div>
+        <div class="stat-icon">📈</div>
+      </div>
+
+      <!-- Total Pengeluaran -->
+      <div class="stat-card stat-expense">
+        <div class="stat-info">
+          <div class="stat-label">Total Pengeluaran</div>
+          <div class="stat-value" id="totalExpense">Rp 0</div>
+        </div>
+        <div class="stat-icon">📉</div>
+      </div>
+
+      <!-- Saldo Bersih -->
+      <div class="stat-card stat-balance">
+        <div class="stat-info">
+          <div class="stat-label">Sisa Saldo Bersih</div>
+          <div class="stat-value" id="netBalance">Rp 0</div>
+        </div>
+        <div class="stat-icon">💵</div>
+      </div>
+    </section>
+
+    <!-- Visualisasi Grafik Perbandingan -->
+    <section class="charts-grid">
+      <!-- Grafik Batang Pemasukan vs Pengeluaran -->
+      <div class="chart-card">
+        <div class="chart-card-header">
+          <h3>Perbandingan Arus Kas</h3>
+          <span style="font-size: 0.8rem; color: var(--text-muted);">Bulan Berjalan</span>
+        </div>
+        <div class="chart-container">
+          <canvas id="comparisonChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Grafik Donut Komposisi Pengeluaran per Kategori -->
+      <div class="chart-card">
+        <div class="chart-card-header">
+          <h3>Proporsi Kategori Pengeluaran</h3>
+          <span style="font-size: 0.8rem; color: var(--text-muted);">Distribusi Biaya</span>
+        </div>
+        <div class="chart-container" style="display: flex; align-items: center; justify-content: center;">
+          <canvas id="categoryChart"></canvas>
+          <div id="categoryChartNoData" style="display: none; height: 100%; align-items: center; justify-content: center; color: var(--text-muted); font-size: 0.9rem;">
+            Belum ada pengeluaran pada periode ini
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Riwayat Transaksi & Filter -->
+    <section class="transactions-card">
+      <div class="card-header-bar">
+        <div>
+          <h3 style="font-size: 1.15rem; font-weight: 700;">Riwayat Transaksi</h3>
+        </div>
+
+        <!-- Filter Transaksi -->
+        <div class="table-filters">
+          <select id="filterType" class="form-control" style="width: auto; padding: 0.45rem 0.75rem;" onchange="loadTransactions()">
+            <option value="">Semua Tipe</option>
+            <option value="expense">Hanya Pengeluaran</option>
+            <option value="income">Hanya Pemasukan</option>
+          </select>
+
+          <select id="filterCategory" class="form-control" style="width: auto; padding: 0.45rem 0.75rem;" onchange="loadTransactions()">
+            <option value="">Semua Kategori</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Tabel Daftar Transaksi -->
+      <div class="table-container">
+        <table class="table">
+          <thead>
+            <tr>
+              <th style="width: 15%;">Tanggal</th>
+              <th style="width: 25%;">Kategori</th>
+              <th style="width: 30%;">Keterangan</th>
+              <th style="width: 18%;">Nominal</th>
+              <th style="width: 12%;">Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="transactionTableBody">
+            <!-- Data baris transaksi diisi oleh JavaScript -->
+          </tbody>
+        </table>
+
+        <!-- Tampilan Kosong Jika Belum Ada Data -->
+        <div id="transactionEmptyState" class="empty-state" style="display: none;">
+          <div class="icon">📝</div>
+          <p><strong>Belum ada transaksi pada periode yang dipilih.</strong></p>
+          <p style="font-size: 0.875rem; margin-top: 0.25rem;">Klik tombol <strong>"Tambah Transaksi"</strong> di atas untuk mencatat pemasukan atau pengeluaran pertama Anda.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Modal Tambah / Edit Transaksi -->
+  <div id="transactionModal" class="modal-backdrop">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="transactionModalTitle">Tambah Transaksi</h3>
+        <button class="modal-close" onclick="closeTransactionModal()">&times;</button>
+      </div>
+
+      <form id="transactionForm">
+        <div class="modal-body">
+          <div id="transactionAlert" class="alert"></div>
+
+          <input type="hidden" id="editTransactionId">
+          <input type="hidden" id="transactionType" value="expense">
+
+          <!-- Pemilih Tipe Transaksi (Toggle Cepat) -->
+          <div class="type-toggle">
+            <button type="button" id="typeBtnExpense" class="type-toggle-btn active-expense" onclick="setTransactionType('expense')">
+              📉 Pengeluaran
+            </button>
+            <button type="button" id="typeBtnIncome" class="type-toggle-btn" onclick="setTransactionType('income')">
+              📈 Pemasukan
+            </button>
+          </div>
+
+          <!-- Nominal -->
+          <div class="form-group">
+            <label for="transactionAmount" class="form-label">Nominal (Rupiah)</label>
+            <input 
+              type="number" 
+              id="transactionAmount" 
+              class="form-control" 
+              placeholder="contoh: 50000" 
+              required 
+              min="1"
+            >
+          </div>
+
+          <!-- Kategori -->
+          <div class="form-group">
+            <label for="transactionCategory" class="form-label">Kategori</label>
+            <select id="transactionCategory" class="form-control" required>
+              <!-- Diisi otomatis berdasarkan tipe -->
+            </select>
+          </div>
+
+          <!-- Tanggal Transaksi -->
+          <div class="form-group">
+            <label for="transactionDate" class="form-label">Tanggal Transaksi</label>
+            <input 
+              type="date" 
+              id="transactionDate" 
+              class="form-control" 
+              required
+            >
+          </div>
+
+          <!-- Keterangan -->
+          <div class="form-group" style="margin-bottom: 0;">
+            <label for="transactionDescription" class="form-label">Keterangan (Opsional)</label>
+            <input 
+              type="text" 
+              id="transactionDescription" 
+              class="form-control" 
+              placeholder="contoh: Makan siang di kantor, Gaji pokok, dll."
+            >
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" onclick="closeTransactionModal()">Batal</button>
+          <button type="submit" id="transactionSubmitBtn" class="btn btn-primary">Simpan Transaksi</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal Kelola Kategori Custom -->
+  <div id="categoryModal" class="modal-backdrop">
+    <div class="modal" style="max-width: 560px;">
+      <div class="modal-header">
+        <h3>🏷️ Kelola Kategori Transaksi</h3>
+        <button class="modal-close" onclick="closeCategoryModal()">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div id="categoryAlert" class="alert"></div>
+
+        <!-- Form Tambah / Edit Kategori Custom -->
+        <form id="categoryForm" style="background: var(--bg-main); padding: 1rem; border-radius: var(--radius); border: 1px solid var(--border); margin-bottom: 1.25rem;">
+          <input type="hidden" id="editCategoryId">
+          <h4 style="font-size: 0.95rem; margin-bottom: 0.75rem;">Buat Kategori Kustom Baru</h4>
+          <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+            <input 
+              type="text" 
+              id="categoryName" 
+              class="form-control" 
+              placeholder="Nama Kategori (contoh: Kopi & Cafe)" 
+              required 
+              style="flex: 2; min-width: 160px;"
+            >
+            <select id="categoryType" class="form-control" style="flex: 1; min-width: 130px;">
+              <option value="expense">Pengeluaran</option>
+              <option value="income">Pemasukan</option>
+            </select>
+            <button type="submit" id="categoryFormSubmitBtn" class="btn btn-primary btn-sm" style="padding: 0.6rem 1rem;">
+              Tambah Kategori
+            </button>
+          </div>
+        </form>
+
+        <!-- Daftar Kategori Bawaan & Custom -->
+        <h4 style="font-size: 0.95rem; margin-bottom: 0.5rem;">Daftar Kategori Tersedia</h4>
+        <div id="categoryListContainer" style="max-height: 280px; overflow-y: auto;">
+          <!-- Diisi otomatis oleh categories.js -->
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" onclick="closeCategoryModal()">Tutup</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <p>&copy; 2026 Expense Tracker. Hak Cipta Dilindungi.</p>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="/static/js/auth.js"></script>
+  <script src="/static/js/categories.js"></script>
+  <script src="/static/js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,27 @@
+# Environment variables
+.env
+
+# Go build binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+/bin/
+/expense-tracker
+
+# IDE & Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Temporary & testing files
+cookies.txt
+*.tmp
+
+# OS temporary files
+.DS_Store
+Thumbs.db
+
+
