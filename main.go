@@ -16,7 +16,7 @@ func main() {
 	// 1. Memuat konfigurasi environment
 	config.LoadEnv(".env")
 
-	port := os.Getenv("APP_PORT")
+	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
 	}
